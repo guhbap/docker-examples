@@ -1,0 +1,67 @@
+services:
+  postgres:
+    # 13-alpine   383MB
+    # 14-alpine   389MB
+    # 15-alpine   391MB
+    # 16-alpine   394MB
+    # 17-alpine   398MB
+    # 13          600MB
+    # 14          604MB
+    # 15          608MB
+    # 16          617MB
+    # 17          621MB
+
+    image: postgres:17
+    env_file:
+      - .db.env
+
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME} # что угодно но не 'postgres', лучше без лишних спец-символов 
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+
+    # иногда необходимо чтоб снять ограничения
+    # command:
+    #  - postgres
+    #  - "-c"
+    #  - "max_connections=3000"
+
+    # проверка что СУБД успешно запустилась и в ней есть нужная база данных 
+    healthcheck:
+      test: pg_isready -U "${DB_USER}" -d "${DB_NAME}"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    restart: unless-stopped
+
+
+    # иногда необходимо для доступа из других контейнеров
+    # networks:
+    #   postgres:
+    #     ipv4_address: 172.52.0.13
+
+
+volumes:
+  postgres-data:
+    name: postgres-data
+# networks:
+#   postgres:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 172.52.0.0/28
+#           gateway: 172.52.0.10
+#           # /28 - до 172.52.0.15 
+#           # /27 - до 172.52.0.31 
+#           # /26 - до 172.52.0.63 
+#           # /25 - до 172.52.0.127 
+#           # /24 - до 172.52.0.255 

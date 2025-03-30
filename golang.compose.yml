@@ -1,0 +1,16 @@
+services:
+  backend:
+    image: ${BACKEND_IMAGE}
+    # для локальной сборки (если не указан image)
+    # build: .
+    ports:
+      - "80:80"
+    volumes:
+      # Если при сборке используется кэширование
+      - go_cache:/gocache
+    restart: always
+
+    # если необходим доступ к СУБД
+    # networks:
+    #   postgres:
+    #     ipv4_address: 172.52.0.12
